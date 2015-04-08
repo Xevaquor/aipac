@@ -1,14 +1,13 @@
-__author__ = 'Xev'
+#!/usr/bin/env python
+# coding=utf-8
+__author__ = 'Xevaquor'
+__license__ = 'MIT'
 
 from copy import deepcopy
 import random
 
-
-class Field(object):
-    def __init__(self):
-        pass
-
-    Empty, Cross, Circle = [" ", "X", "O"]
+from minmax import MinmaxAgent
+from common import Field
 
 
 class RandomAgent(object):
@@ -16,7 +15,7 @@ class RandomAgent(object):
         self.symbol = symbol
 
     def make_move(self, state, game):
-        valid_moves = filter(lambda m: m[0] == self.symbol, game.get_valid_moves(state))
+        valid_moves = filter(lambda m: m[0] == self.symbol, game.get_legal_moves(state))
         return random.choice(valid_moves)
 
 
@@ -28,7 +27,7 @@ class HumanAgent(object):
         while True:
             coords = tuple(map(int, raw_input("Gimme coordinates: (y x) ").split(' ')))
             move = (self.symbol, coords)
-            if move in game.get_valid_moves(state):
+            if move in game.get_legal_moves(state, self.symbol):
                 return move
 
 
@@ -43,10 +42,12 @@ class State(object):
     def __str__(self):
         lines = []
         for y in range(3):
+            # noinspection PyTypeChecker
             lines.append('|' + ''.join(self.grid[y]) + '|')
         return '+---+\n' + '\n'.join(lines) + '\n+---+\n'
 
 
+# noinspection PyMethodMayBeStatic
 class TicTacToe(object):
     def __init__(self):
         pass
@@ -54,13 +55,12 @@ class TicTacToe(object):
     def get_start_state(self):
         return State()
 
-    def get_valid_moves(self, state):
+    def get_legal_moves(self, state, player):
         moves = []
         for y in range(3):
             for x in range(3):
                 if state.grid[y][x] == Field.Empty:
-                    moves += [(Field.Circle, (y, x))]
-                    moves += [(Field.Cross, (y, x))]
+                    moves += [(player, (y, x))]
 
         return moves
 
@@ -96,6 +96,10 @@ class TicTacToe(object):
                 return True
         return False
 
+    def has_lose(self, state, player):
+        opponent = Field.Circle if player == Field.Cross else Field.Cross
+        return self.has_won(state, opponent)
+
     def is_terminal(self, state):
         if self.has_won(state, Field.Circle):
             return True
@@ -110,7 +114,7 @@ class TicTacToe(object):
 
 if __name__ == "__main__":
     ha = HumanAgent()
-    ca = RandomAgent()
+    ca = MinmaxAgent()
     g = TicTacToe()
     s = g.get_start_state()
 

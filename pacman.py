@@ -3,12 +3,22 @@
 __author__ = 'Xevaquor'
 __license__ = 'MIT'
 
-from lyout import *
+from layout import *
+from copy import deepcopy
+
+Moves = {
+    'North' : (0, -1),
+    'South' : (0, 1),
+    'East': (1, 0),
+    'West' : (-1, 0),
+    'Stop' : (0, 0)
+}
+
 
 class AgentStatus(object):
-    def __init__(self):
-        self.position = (0,0)
-        self.is_scared = False
+    def __init__(self, pos = (0,0), scared = False):
+        self.position = pos
+        self.is_scared = scared
 
 
 class PacmanGameState(object):
@@ -17,18 +27,48 @@ class PacmanGameState(object):
         # >0 - ghost
         self.agents = [None, None]
         self.power_pellets = []
-        self.food = None
+        self.food = [(3,3)]
 
 
 class PacmanGame(object):
-    def __init__(self):
-        pass
+    def __init__(self, lay):
+        self.layout = lay
+
+    def get_initial_game_state(self):
+        gs = PacmanGameState()
+        gs.agents[0] = AgentStatus(pos=(3, 1), scared=False)
+        gs.agents[1] = AgentStatus(pos=(2, 1), scared=False)
+        return gs
 
     def get_legal_moves(self, state, agent_index=0):
-        pass
+        if agent_index != 0:
+            raise Exception("Not implemented!")
 
-    def apply_move(self, state, move, agent_index=0:
-        pass
+        legal_moves = []
+
+        x, y = state.agents[agent_index].position
+        for m, d in Moves.items():
+            dx, dy = d
+            nx = x + dx
+            ny = y + dy
+            if nx >= 0 and nx < self.layout.cols and ny >= 0 and ny < self.layout.rows:
+                if self.layout.grid[ny][nx] != Tile.Wall:
+                    legal_moves.append(m)
+
+        return legal_moves
+
+
+    def apply_move(self, state, move, agent_index=0):
+        # assert move is legal
+        # only move so far
+        dx, dy = Moves[move]
+
+        s = deepcopy(state)
+        s.agents[agent_index].position =( s.agents[agent_index].position[0] +  dx,
+        s.agents[agent_index].position[1] + dy)
+
+        return s
+
 
     def is_terminate(self, state):
         pass

@@ -5,7 +5,7 @@ class Tile:
     def __init__(self):
         pass
 
-    Empty, Wall, Start = range(3)
+    Empty, Wall, Start, StartGhost = range(4)
 
 
 class Layout(object):
@@ -35,4 +35,6 @@ class Layout(object):
                     cols += 1
         self.grid.reverse()
         self.shape = (rows, cols)
+        self.rows = rows
+        self.cols = cols
 

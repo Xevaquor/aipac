@@ -22,12 +22,12 @@ class AgentStatus(object):
 
 
 class PacmanGameState(object):
-    def __init__(self):
+    def __init__(self, food):
         # 0 - pacman
         # >0 - ghost
         self.agents = [None, None]
         self.power_pellets = []
-        self.food = [(3,3)]
+        self.food = deepcopy(food)
 
 
 class PacmanGame(object):
@@ -35,7 +35,7 @@ class PacmanGame(object):
         self.layout = lay
 
     def get_initial_game_state(self):
-        gs = PacmanGameState()
+        gs = PacmanGameState(self.layout.food)
         gs.agents[0] = AgentStatus(pos=(3, 1), scared=False)
         gs.agents[1] = AgentStatus(pos=(2, 1), scared=False)
         return gs
@@ -66,6 +66,11 @@ class PacmanGame(object):
         s = deepcopy(state)
         s.agents[agent_index].position =( s.agents[agent_index].position[0] +  dx,
         s.agents[agent_index].position[1] + dy)
+
+        # eat food
+        if agent_index == 0:
+            x, y = s.agents[agent_index].position
+            s.food[y][x] = False
 
         return s
 

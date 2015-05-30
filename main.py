@@ -17,6 +17,8 @@ from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QKeyEvent
 from layout import Layout, Tile
 from pacman import PacmanGame, PacmanGameState
+from HumanAgent import HumanAgent
+from StopAgent import StopAgent
 
 TILE_SIZE = 20
 
@@ -28,7 +30,7 @@ class Example(QWidget):
 
         self.keyboard_state = {'North' : False, 'South' : False, 'West' : False, 'East' : False, 'Stop' : False}
 
-
+        self.agents = [HumanAgent(0), StopAgent(1)]
         self.layout = Layout()
         self.layout.load_from_file("test.lay")
         self.colors = {Tile.Empty: QBrush(QColor(26,26,26)),
@@ -43,15 +45,19 @@ class Example(QWidget):
         self.timer.start(500, self)
 
     def timerEvent(self, event):
-        legal_moves = self.game.get_legal_moves(self.current_game_state)
-        #self.current_game_state = self.game.apply_move(self.current_game_state, random.sample(legal_moves, 1)[0], 0)
-        move = 'Stop'
-        for m in [x for x in legal_moves if x != 'Stop']:
-            if self.keyboard_state[m]:
-                move = m
-        assert move is not None
 
-        self.current_game_state = self.game.apply_move(self.current_game_state, move, 0)
+        for i in range(2):
+            agent = self.agents[i]
+            move = agent.make_decision(self.current_game_state, self.game, self.keyboard_state)
+            assert move in self.game.get_legal_moves(self.current_game_state)
+            self.current_game_state = self.game.apply_move(self.current_game_state, move, i)
+
+
+        #move = self.pacman_agent.make_decision(self.current_game_state, self.game, self.keyboard_state)
+
+        # assert that returned move is valid
+
+        #self.current_game_state = self.game.apply_move(self.current_game_state, move, 0)
 
         self.repaint()
 
@@ -105,11 +111,13 @@ class Example(QWidget):
             qp.setBrush(QBrush(QColor(255,0,0)))
             qp.drawEllipse(g_x, g_y, TILE_SIZE, TILE_SIZE)
 
-        for x, y in self.current_game_state.food:
-            qp.setBrush(QBrush(QColor(255,255,255)))
-            qp.drawEllipse(x * TILE_SIZE + TILE_SIZE / 2,
-                         y * TILE_SIZE + TILE_SIZE / 2,
-                    TILE_SIZE / 4, TILE_SIZE / 4)
+        for y in range(ysize):
+            for x in range(xsize):
+                if self.current_game_state.food[y][x]:
+                    qp.setBrush(QBrush(QColor(255,255,255)))
+                    qp.drawEllipse(x * TILE_SIZE + TILE_SIZE / 2,
+                                 y * TILE_SIZE + TILE_SIZE / 2,
+                            TILE_SIZE / 4, TILE_SIZE / 4)
 
         qp.end()
 
